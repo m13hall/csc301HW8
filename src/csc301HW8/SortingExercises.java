@@ -19,51 +19,71 @@ public class SortingExercises
  public static void mergeSort(int [ ] vals)
     {
         // obtain sorted array
-        int [] newVals = mergeSortKernel (vals);
-        // copy array back to original array
-        for (int i = 0; i < vals.length; i++)
-            vals [i] = newVals [i];
+	 int[] copyTo = vals.clone();
+        mergeSortKernel (vals, copyTo, 0, vals.length - 1);
+        		// copy array back to original array
+        /* instead of copying back to original, we just assign the 
+         * original array to be the new array
+         */
+        //for (int i = 0; i < vals.length; i++) 
+         //  vals [i] = newVals [i];
     }
-
-    private static int [] mergeSortKernel (int [] vals)
+//left is the first element being looked at
+ //right is the last element being looked at
+    private static void mergeSortKernel (int [] copyFrom, int[] copyTo, int left, int right)
     {
+    	/*Copying a new array out every time is vastly innefficient,
+    	 * both space-wise and time-wise, especially since this
+    	 *  happens usually twice at eat calling of mergeSortKernel.
+    	 *  We're changing it to use indicies so it only 
+    	 */
         // Base case: Singleton arrays need not be sorted.
-        if (vals.length <= 1)
+        if (left == right)
             {
-                return vals.clone();
+                  //stop
             } // if length <= 1
         else
             {
-                int mid = vals.length / 2;
-                int [] left  = mergeSortKernel(Arrays.copyOfRange(vals, 0, mid));
-                int [] right = mergeSortKernel(Arrays.copyOfRange(vals, mid, vals.length));
-                return  merge(left, right);
+                int mid = (left + right) / 2;
+                mergeSortKernel(copyTo, copyFrom, left, mid);
+                mergeSortKernel(copyTo, copyFrom, mid + 1, right);
+                if(left != mid){
+                System.out.println(Arrays.asList(copyFrom).subList(left, mid).toString());
+                } else{
+                	System.out.println(copyFrom[left]);
+                }
+                if(mid+1 != right){
+                    System.out.println(Arrays.asList(copyFrom).subList(mid+1, right));
+                    } else{
+                    	System.out.println(copyFrom[mid+1]);
+                    }
+                merge(copyFrom, copyTo, left, mid, right);
+                System.out.println("merged " + left+ ":"+mid + " with "+ (mid+1)+ ":"+ right);
+                
             } // recursive case: More than one element
     } 
 
     // method to merge two arrays to yield a new third array
-    private static int [] merge (int [] first, int [] second) {
-        int [] result = new int [first.length + second.length];
-        int i1 = 0;  // index for first array
-        int i2 = 0;  // index for second array
-        int r  = 0;  // index for result array
+    private static void merge (int [] copyFrom, int[] copyTo, int left, int mid, int right) {
+        int i1 = left;  // index for first part of copyFrom
+        int i2 = mid +1;  // index for second part of copyFrom
+        int r  = left;  // index for copyTo
 
-        while (r < first.length + second.length)
+        while (r <= right)
             {
-                if ((i2 >= second.length) || (i1 < first.length && first[i1] < second[i2]))
+                if ((i2 > right) || (i1 < mid && copyFrom[i1] < copyFrom[i2]))
                     {
-                        result [r] = first[i1];
+                        copyTo [r] = copyFrom[i1];
                         i1++;
                         r++;
                     }
                 else
                     {
-                        result [r] = second[i2];
+                        copyTo [r] = copyFrom[i2];
                         i2++;
                         r++;
                     }
             }
-        return result;
     }  // merge
 
 
@@ -107,8 +127,9 @@ public class SortingExercises
 public static void main (String [] args) 
     throws Exception 
   {
-
-    System.out.println ("timing of several sorting algorithms "
+int arr[] = {11, 9, 8, 5, 6, 4, 3, 2, 1};
+mergeSort(arr);
+     System.out.println ("timing of several sorting algorithms "
                         + "on various size data sets");
     int size;
     int dataset, i;
@@ -167,18 +188,18 @@ public static void main (String [] args)
 
                 System.out.printf ("%7d", end_time - start_time);
 
-                // time and check radix sort with Max computation, Math.Pow
+                /*// time and check radix sort with Max computation, Math.Pow
                 start_time = System.currentTimeMillis();
                 radixSort (b);
                 end_time = System.currentTimeMillis();
           
-                for (i = 0; i < size; i++) /* check array properly sorted */
+                for (i = 0; i < size; i++)  check array properly sorted 
                     if (a[i] != b[i])
                         System.out.println ("error in radixSort");
 
               System.out.printf ("%10d", end_time - start_time);
               
-              System.out.println ();
+           */   System.out.println ();
           } // size loop
       } // dataset loop
   } // main
