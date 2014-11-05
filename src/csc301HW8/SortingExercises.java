@@ -6,67 +6,7 @@ import java.util.ArrayList;
 import java.lang.Integer;
 
 public class SortingExercises {
-	
-/*	  *//**
-     * Code loosely based on 
-     *   https://github.com/Grinnell-CSC207/sorting
-     * 
-     * place elements in data into order
-     *
-     * @param data array of positive integer values
-     *//*
- public static void mergeSort(int [ ] vals)
-    {
-        // obtain sorted array
-        int [] newVals = mergeSortKernel (vals);
-        // copy array back to original array
-        for (int i = 0; i < vals.length; i++)
-            vals [i] = newVals [i];
-    }
 
-    private static int [] mergeSortKernel (int [] vals)
-    {
-        // Base case: Singleton arrays need not be sorted.
-        if (vals.length <= 1)
-            {
-                return vals.clone();
-            } // if length <= 1
-        else
-            {
-                int mid = vals.length / 2;
-                int [] left  = mergeSortKernel(Arrays.copyOfRange(vals, 0, mid));
-                int [] right = mergeSortKernel(Arrays.copyOfRange(vals, mid, vals.length));
-                return  merge(left, right);
-            } // recursive case: More than one element
-    } 
-
-    // method to merge two arrays to yield a new third array
-    private static int [] merge (int [] first, int [] second) {
-        int [] result = new int [first.length + second.length];
-        int i1 = 0;  // index for first array
-        int i2 = 0;  // index for second array
-        int r  = 0;  // index for result array
-
-        while (r < first.length + second.length)
-            {
-                if ((i2 >= second.length) || (i1 < first.length && first[i1] < second[i2]))
-                    {
-                        result [r] = first[i1];
-                        i1++;
-                        r++;
-                    }
-                else
-                    {
-                        result [r] = second[i2];
-                        i2++;
-                        r++;
-                    }
-            }
-        return result;
-    }  // merge
-
-*/
-	
 	/**
 	 * Code loosely based on https://github.com/Grinnell-CSC207/sorting
 	 * 
@@ -77,65 +17,66 @@ public class SortingExercises {
 	 */
 	public static void mergeSort(int[] vals) {
 		// obtain sorted array
-		int[] copyTo = vals.clone();
-		mergeSortKernel(vals, copyTo, 0, vals.length - 1);
-		for (int i = 0; i < vals.length - 1; i++) {
-			if (vals[i] > vals[i + 1]) {
-				for (int j = 0; j < vals.length; j++) {
-					vals[j] = copyTo[j];
+		int[] scratch = vals.clone();
+
+		int mergingIntoSize = 2;
+		int mergingFromSize = 1;
+		boolean valsIsCorrect = true;
+		int left;
+		while (mergingIntoSize <= vals.length) {
+			for (left = 0; left + mergingIntoSize <= vals.length; left += mergingIntoSize) {
+				// merge subarrays of size subarray
+				if (valsIsCorrect) {
+					merge(vals, scratch, left, left + mergingFromSize, left
+							+ mergingIntoSize - 1);
+				} else {
+					merge(scratch, vals, left, left + mergingFromSize, left
+							+ mergingIntoSize - 1);
 				}
-				break;
+			}
+			
+			//clean up extra values
+			if(vals.length - mergingIntoSize != 0 && mergingFromSize > 1){
+				if (valsIsCorrect) {
+					merge(vals, scratch, left, left + mergingFromSize, vals.length - 1);
+				} else {
+					merge(scratch, vals, left, left + mergingFromSize, vals.length - 1);
+				}
+			}
+
+			mergingIntoSize *= 2;
+			mergingFromSize *= 2;
+			valsIsCorrect = !valsIsCorrect; // keep track of whether vals has
+											// the sorted values or not
+		}
+		
+		// clean up
+		if (vals.length - (mergingIntoSize / 2) != 0) {
+			if (valsIsCorrect) {
+				merge(vals, scratch, 0, mergingIntoSize / 2, vals.length - 1);
+			} else {
+				merge(scratch, vals, 0, mergingIntoSize / 2, vals.length - 1);
+			}
+			valsIsCorrect = !valsIsCorrect;
+		}
+	
+		if (!valsIsCorrect) {
+			for(int i = 0; i < vals.length; i++){
+				vals[i] = scratch[i];
 			}
 		}
 	}
 
-	// left is the first element being looked at
-	// right is the last element being looked at
-	private static void mergeSortKernel(int[] copyFrom, int[] copyTo, int left,
-			int right) {
-		
-		 /* Copying a new array out every time is vastly innefficient, both
-		 * space-wise and time-wise, especially since this happens usually twice
-		 * at eat calling of mergeSortKernel. We're changing it to use indicies
-		 * so it only
-		 * */
-		 
-		// Base case: Singleton arrays need not be sorted.
-		if (left == right) {
-			// stop
-		} // if length <= 1
-		else {
-
-			/*if ((right - left) % 2 == 1) { // even number of elements
-				int mid = (left + right) / 2;
-				mergeSortKernel(copyTo, copyFrom, left, mid);
-				mergeSortKernel(copyTo, copyFrom, mid + 1, right);
-				merge(copyFrom, copyTo, left, mid, right);
-			} else {
-				right--;
-				int mid = (int) Math.floor((left + right) / 2);
-				mergeSortKernel(copyTo, copyFrom, left, mid);
-				mergeSortKernel(copyTo, copyFrom, mid + 1, right);
-				merge(copyFrom, copyTo, left, mid, right);
-				merge(copyTo, copyFrom, left, right, right + 1);
-				for (int i = 0; i < copyTo.length; i++) {
-					copyTo[i] = copyFrom[i];
-				}
-
-			}*/
-
-		} // recursive case: More than one element
-	}
-
-	// method to merge two arrays to yield a new third array
-	private static void merge(int[] copyFrom, int[] copyTo, int left, int mid,
-			int right) {
+	private static void merge(int[] copyFrom, int[] copyTo, int left,
+			int firstElmSecondSubarray, int right) {
 		int i1 = left; // index for first part of copyFrom
-		int i2 = mid + 1; // index for second part of copyFrom
+		int i2 = firstElmSecondSubarray; // index for second part of copyFrom
 		int r = left; // index for copyTo
+		int stopAt = right;
 
-		while (r <= right) {
-			if ((i2 > right) || (i1 <= mid && copyFrom[i1] < copyFrom[i2])) {
+		while (r <= stopAt) {
+			if ((i2 > stopAt)
+					|| (i1 < firstElmSecondSubarray && copyFrom[i1] < copyFrom[i2])) {
 				copyTo[r] = copyFrom[i1];
 				i1++;
 				r++;
@@ -190,11 +131,11 @@ public class SortingExercises {
 
 				for (int bucket = 0; bucket < 10; bucket++) {
 					for (int elmInBucket = 0; elmInBucket <= iterators[bucket]; elmInBucket++) {
-							data[i] = buckets[bucket][elmInBucket];
-							buckets[bucket][elmInBucket] = 0;
-							// now we do no casting (ie allocating a new
-							// Integer)
-							i++;
+						data[i] = buckets[bucket][elmInBucket];
+						buckets[bucket][elmInBucket] = 0;
+						// now we do no casting (ie allocating a new
+						// Integer)
+						i++;
 					}
 				}
 				Arrays.fill(iterators, -1);
@@ -227,7 +168,7 @@ public class SortingExercises {
 			}
 
 			// size = 10;
-			for (size = 4; size < 40; size *= 2) {
+			for (size = 10000; size < 2570000; size*=2) {
 				System.out.printf("%10d:  ", size);
 				/* set up data arrays */
 				int[] a = new int[size];
@@ -253,33 +194,33 @@ public class SortingExercises {
 				long end_time;
 
 				// time and check basic radix sort
-				
-				  start_time = System.currentTimeMillis(); mergeSort(a);
-				  end_time = System.currentTimeMillis();
-				  
-				  for (i = 1; i < size; i++)
-				 
 
-				/* check array properly sorted */
-				
-				  if (a[i - 1] > a[i])
-				  System.out.println("error in mergeSort");
-				  
-				  System.out.printf("%7d", end_time - start_time);
-				 
-
-				// time and check radix sort with Max computation, Math.Pow
 				start_time = System.currentTimeMillis();
-				radixSort(b);
+				mergeSort(a);
 				end_time = System.currentTimeMillis();
 
-				for (i = 0; i < size; i++)
-					// check array properly sorted
-					if (a[i] != b[i]){
-						System.out.println(Arrays.toString(b));
-						System.out.println("error in radixSort");
-					}
-				System.out.printf("%10d", end_time - start_time);
+				for (i = 1; i < size; i++)
+
+					/* check array properly sorted */
+
+					if (a[i - 1] > a[i])
+						
+						System.out.println("error in mergeSort");
+
+				System.out.printf("%7d", end_time - start_time);
+
+				 // time and check radix sort with Max computation, Math.Pow
+				 start_time = System.currentTimeMillis();
+				 radixSort(b);
+				 end_time = System.currentTimeMillis();
+				
+				 for (i = 0; i < size; i++)
+				 // check array properly sorted
+				 if (a[i] != b[i]) {
+				 System.out.println(Arrays.toString(b));
+				 System.out.println("error in radixSort");
+				 }
+				 System.out.printf("%10d", end_time - start_time);
 				System.out.println();
 			} // size loop
 		} // dataset loop
